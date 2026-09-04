@@ -1,16 +1,25 @@
 package http
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/http/handlers"
+	"github.com/DuarteDc/ocr-golang.git/internal/ports"
+	"github.com/gin-gonic/gin"
+)
 
-func NewRouter() *gin.Engine {
+func NewRouter(documentRepository ports.DocumentRepository, documentPageRepository ports.DocumentPageRepository,
+	pdfExtractor ports.PDFExtractor) *gin.Engine {
 
 	router := gin.Default()
+
+	documentHadler := handlers.NewDocumentHandler(documentRepository, documentPageRepository, pdfExtractor)
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
 		})
 	})
+
+	router.POST("/documents", documentHadler.Upload)
 
 	return router
 
