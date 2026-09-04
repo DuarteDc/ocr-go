@@ -43,9 +43,10 @@ func (r *PostgresDocumentPageRepository) CreateMany(
 				id,
 				document_id,
 				page_number,
-				content
+				content,
+				search_vector
 			)
-			VALUES ($1, $2, $3, $4)
+			VALUES ($1, $2, $3, $4, to_tsvector('spanish', $4))
 			`,
 			uuid.New(),
 			documentID,
@@ -67,4 +68,43 @@ func (r *PostgresDocumentPageRepository) CreateMany(
 	}
 
 	return nil
+}
+
+func (r *PostgresDocumentPageRepository) Search(
+	ctx context.Context,
+	query string,
+) ([]domain.SearchResult, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT
+		 	d.id,
+			d.file_name,
+			dp.page_number,
+			ts_headline('spanish', dp.content, plainto_tsquery('spanish', $1)) AS snippet
+		FROM 
+			document_pages dp
+		INNER JOIN documents d ON dp.document_id = d.id
+		WHERE 
+			dp.search_vector @@ plainto_tsquery('spanish', $1)
+		ORDER BY dp.page_number LIMIT 50
+	`, query)
+
+	if err != nil {
+		return nil, fmt.Errorf("search query: %w", err)
+	}
+
+	defer rows.Close()
+	results := make([]domain.SearchResult, 0)
+	for rows.Next() {
+		var result domain.SearchResult
+		if err := rows.Scan(
+			&result.DocumentID,
+			&result.FileName,
+			&result.PageNumber,
+			&result.Snippet,
+		); err != nil {
+			return nil, fmt.Errorf("scan result: %w", err)
+		}
+		results = append(results, result)
+	}
+	return results, nil
 }

@@ -81,3 +81,26 @@ func (h *DocumentHandler) Upload(c *gin.Context) {
 		"path":         filePath,
 	})
 }
+
+func (h *DocumentHandler) Search(c *gin.Context) {
+	query := c.Query("q")
+
+	if query == "" {
+		c.JSON(400, gin.H{
+			"error": "q is required",
+		})
+		return
+	}
+
+	results, err := h.documentPageRepository.Search(c.Request.Context(), query)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"results": results,
+	})
+}

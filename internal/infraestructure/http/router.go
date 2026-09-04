@@ -19,6 +19,7 @@ func NewRouter(documentRepository ports.DocumentRepository, documentPageReposito
 		})
 	})
 
+	router.GET("/search", documentHadler.Search)
 	router.POST("/documents", documentHadler.Upload)
 
 	return router
