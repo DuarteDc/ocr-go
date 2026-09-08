@@ -14,11 +14,7 @@ func NewRouter(documentRepository ports.DocumentRepository, documentPageReposito
 
 	documentHadler := handlers.NewDocumentHandler(documentRepository, documentPageRepository, pdfExtractor)
 	askHandler := handlers.NewAskHandler(askService)
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
+	router.GET("/health", healthHanlder)
 
 	router.GET("/search", documentHadler.Search)
 	router.POST("/documents", documentHadler.Upload)
@@ -26,4 +22,10 @@ func NewRouter(documentRepository ports.DocumentRepository, documentPageReposito
 
 	return router
 
+}
+
+func healthHanlder(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"status": "ok",
+	})
 }
