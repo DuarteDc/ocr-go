@@ -73,7 +73,8 @@ func (r *PostgresDocumentPageRepository) CreateMany(
 func (r *PostgresDocumentPageRepository) Search(
 	ctx context.Context,
 	query string,
-) ([]domain.SearchResult, error) {
+	limit int,
+) ([]domain.RetrievedChunk, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT
 		 	d.id,
@@ -85,22 +86,22 @@ func (r *PostgresDocumentPageRepository) Search(
 		INNER JOIN documents d ON dp.document_id = d.id
 		WHERE 
 			dp.search_vector @@ plainto_tsquery('spanish', $1)
-		ORDER BY dp.page_number LIMIT 50
-	`, query)
+		ORDER BY dp.page_number LIMIT $2
+	`, query, limit)
 
 	if err != nil {
 		return nil, fmt.Errorf("search query: %w", err)
 	}
 
 	defer rows.Close()
-	results := make([]domain.SearchResult, 0)
+	results := make([]domain.RetrievedChunk, 0)
 	for rows.Next() {
-		var result domain.SearchResult
+		var result domain.RetrievedChunk
 		if err := rows.Scan(
 			&result.DocumentID,
 			&result.FileName,
 			&result.PageNumber,
-			&result.Snippet,
+			&result.Content,
 		); err != nil {
 			return nil, fmt.Errorf("scan result: %w", err)
 		}
