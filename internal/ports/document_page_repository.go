@@ -14,5 +14,5 @@ type DocumentPageRepository interface {
 		pages []domain.DocuementPage,
 	) error
 
-	Search(ctx context.Context, query string) ([]domain.SearchResult, error)
+	Search(ctx context.Context, query string, limit int) ([]domain.RetrievedChunk, error)
 }

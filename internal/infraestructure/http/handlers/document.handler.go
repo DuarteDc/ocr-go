@@ -92,7 +92,7 @@ func (h *DocumentHandler) Search(c *gin.Context) {
 		return
 	}
 
-	results, err := h.documentPageRepository.Search(c.Request.Context(), query)
+	results, err := h.documentPageRepository.Search(c.Request.Context(), query, 10)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),

@@ -4,9 +4,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/DuarteDc/ocr-golang.git/internal/application"
 	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/datasource"
 	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/datasource/repository"
 	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/http"
+	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/llm"
 	"github.com/DuarteDc/ocr-golang.git/internal/infraestructure/pdf"
 	"github.com/joho/godotenv"
 )
@@ -34,10 +36,13 @@ func main() {
 	documentPageRepository :=
 		repository.NewPostgresDocumentPageRepository(dbPool)
 
+	mockLLM := llm.NewMockLLM()
+	askService := application.NewAskService(documentPageRepository, mockLLM)
+
 	pdfExtractor :=
 		pdf.NewExtractor()
 
-	router := http.NewRouter(documentRepository, documentPageRepository, pdfExtractor)
+	router := http.NewRouter(documentRepository, documentPageRepository, pdfExtractor, askService)
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
