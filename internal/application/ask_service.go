@@ -29,6 +29,9 @@ func (s *AskService) Ask(ctx context.Context, question string) (*domain.Answer, 
 	}
 
 	contextText := buildContext(chunks)
+
+	fmt.Printf("Contexto generado:\n%s\n", contextText)
+
 	answer, err := s.llm.Generate(ctx, question, contextText)
 
 	if err != nil {

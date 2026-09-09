@@ -36,7 +36,7 @@ func main() {
 	documentPageRepository :=
 		repository.NewPostgresDocumentPageRepository(dbPool)
 
-	mockLLM := llm.NewMockLLM()
+	mockLLM := llm.NewOllamaClient("http://localhost:11434", "qwen3:4b")
 	askService := application.NewAskService(documentPageRepository, mockLLM)
 
 	pdfExtractor :=
